@@ -34,27 +34,25 @@ jobs:
           cd ..
           ghdl --version
 
-      # Enhanced regression tests with detailed logging
+      - name: Patch regression.tcl to add relaxed flags
+        run: |
+          sed -i 's/ghdl -a /ghdl -a -frelaxed -Wno-shared /g' script/regression.tcl
+          sed -i 's/ghdl -e /ghdl -e -frelaxed -Wno-shared /g' script/regression.tcl
+          sed -i 's/ghdl -r /ghdl -r -frelaxed -Wno-shared /g' script/regression.tcl
+
       - name: Run OSVVM regression with debug
         run: |
           set -ex
-          # Generate detailed simulation logs
           tclsh script/regression.tcl 2>&1 | tee -a regression.log
           
-          # Check for errors and save debug info on failure
           if grep -q -e "FAILED" -e "FAILURE" -e "ERROR" regression.log; then
             echo "::error::Test failures detected"
-            
-            # Save state machine debug info
-            ghdl -r olo_axi_wrapper --wave=debug.ghw
+            ghdl -r olo_axi_wrapper -frelaxed -Wno-shared --wave=debug.ghw
             gtkwave debug.ghw -f debug.gtkw &
-            
-            # Save relevant signals
             echo "index_slot_num state_polling addr_native enable_read" > debug_signals.txt
             exit 1
           fi
 
-      # Enhanced artifact collection
       - name: Upload debug artifacts
         if: always()
         uses: actions/upload-artifact@v4

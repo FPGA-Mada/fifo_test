@@ -5,8 +5,8 @@ build lib/OsvvmLibraries/OsvvmLibraries.pro
       
 if {$::osvvm::ToolName eq "GHDL"} {
     set OMIT_XILINX_FILES 1
-    SetExtendedAnalyzeOptions {-frelaxed -Wno-specs}
-    SetExtendedSimulateOptions {-frelaxed -Wno-specs -Wno-binding}
+    SetExtendedAnalyzeOptions {-frelaxed -Wno-specs -Wno-shared}
+    SetExtendedSimulateOptions {-frelaxed -Wno-specs -Wno-binding -Wno-shared}
     SetExtendedRunOptions {--ieee-asserts=disable-at-0}
 }
 
@@ -27,3 +27,6 @@ if {$::osvvm::ToolName eq "QuestaSim"} {
 
 build src/src.pro
 build tb/TestHarness_fifo.pro
+
+
+

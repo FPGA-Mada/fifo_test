@@ -1,0 +1,67 @@
+name: OSVVM Regression with Enhanced Debugging
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  osvvm-ghdl-regression:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository with submodules
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y git build-essential \
+            llvm-14 llvm-14-dev llvm-14-tools \
+            zlib1g-dev gnat tcl tcllib \
+            gtkwave  # Add waveform viewer
+
+      - name: Build and install GHDL
+        run: |
+          git clone https://github.com/ghdl/ghdl.git
+          cd ghdl
+          ./configure --with-llvm-config=llvm-config-14
+          make -j$(nproc)
+          sudo make install
+          cd ..
+          ghdl --version
+
+      # Enhanced regression tests with detailed logging
+      - name: Run OSVVM regression with debug
+        run: |
+          set -ex
+          # Generate detailed simulation logs
+          tclsh script/regression.tcl 2>&1 | tee -a regression.log
+          
+          # Check for errors and save debug info on failure
+          if grep -q -e "FAILED" -e "FAILURE" -e "ERROR" regression.log; then
+            echo "::error::Test failures detected"
+            
+            # Save state machine debug info
+            ghdl -r olo_axi_wrapper --wave=debug.ghw
+            gtkwave debug.ghw -f debug.gtkw &
+            
+            # Save relevant signals
+            echo "index_slot_num state_polling addr_native enable_read" > debug_signals.txt
+            exit 1
+          fi
+
+      # Enhanced artifact collection
+      - name: Upload debug artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: simulation-debug
+          path: |
+            *.log
+            *.ghw
+            *.txt
+            *.vcd

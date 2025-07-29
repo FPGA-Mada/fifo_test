@@ -71,6 +71,7 @@ begin
                         if (counter_data_send = 5) then
                             state <= send_tail;
                             in_ready_fifo <= '0';
+							counter_data_send <= 0;
                         end if;
                     when send_tail => 
                          state <= send_head;

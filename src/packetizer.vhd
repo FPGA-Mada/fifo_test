@@ -93,7 +93,7 @@ begin
                 end case;
             end if;
         end if;
-    end process;
+    end process packetizer_proc;
 
     -- FIFO Instantiation
     fifo_inst : entity work.olo_base_fifo_sync

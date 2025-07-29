@@ -123,8 +123,10 @@ begin
 	ExpData := (others => '0');
 	for J in 0 to 999 loop
 		Get(StreamRxRec, RcvData);
+		if (RcData(RcData'high downto RcData'high -2) = "00") then
+			Check(SB,RcvData);
+	        end if;
 		log("Data Received: " & to_hstring(RcvData), Level => DEBUG);
-		Check(SB,RcvData);
 	end loop;
 	
 	WaitForClock(StreamRxRec, 2);

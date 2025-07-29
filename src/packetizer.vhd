@@ -53,6 +53,7 @@ begin
                 m_data_sig         <= (others => '0');
                 counter_data_send  <= 0;
                 state              <= send_head;
+	        in_ready_fifo      <= '0';
             else
                 -- Default assignments
                 m_valid_sig <= '0';

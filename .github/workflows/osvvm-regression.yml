@@ -53,13 +53,3 @@ jobs:
             exit 1
           fi
 
-      - name: Upload debug artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: simulation-debug
-          path: |
-            *.log
-            *.ghw
-            *.txt
-            *.vcd

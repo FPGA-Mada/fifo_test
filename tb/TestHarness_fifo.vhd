@@ -113,17 +113,10 @@ architecture TestHarness of TestHarness_fifo is
 begin
 
 
-    DUT : entity work.olo_base_fifo_sync
+    DUT : entity work.packetization
     generic map (
-        Width_g         => AXI_DATA_WIDTH,
-        Depth_g         => FIFO_DEPTH,
-        AlmFullOn_g     => false,
-        AlmFullLevel_g  => 0,
-        AlmEmptyOn_g    => false,
-        AlmEmptyLevel_g => 0,
-        RamStyle_g      => "auto",  -- Optional: set distributed RAM
-        RamBehavior_g   => "RBW",
-        ReadyRstState_g => '1'
+        DATA_WIDTH         => AXI_DATA_WIDTH,
+        FIFO_DEPTH         => FIFO_DEPTH
     )
     port map (
         -- Control
@@ -131,25 +124,16 @@ begin
         Rst       => not nReset,
 
         -- Input (from master)
-        In_Data   => RxTData,
-        In_Valid  => RxTValid,
-        In_Ready  => RxTReady,
-        In_Level  => open,
+        s_data   => RxTData,
+        s_valid  => RxTValid,
+        s_ready  => RxTReady,
 
         -- Output (to slave)
-        Out_Data  => TxTData,
-        Out_Valid => TxTValid,
-        Out_Ready => TxTReady,
-        Out_Level => open,
-
-        -- Status
-        Full      => open,
-        AlmFull   => open,
-        Empty     => open,
-        AlmEmpty  => open
+        m_data  => TxTData,
+        m_valid => TxTValid,
+        m_ready => TxTReady
     );
-
-	
+		
   -- create Clock 
   Osvvm.ClockResetPkg.CreateClock ( 
     Clk        => Clk, 

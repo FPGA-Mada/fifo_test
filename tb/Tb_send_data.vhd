@@ -96,7 +96,7 @@ begin
 		log("Send 1000 words with random values");
 	
 		for J in 0 to 999 loop  -- 1000 words
-			rand_data := rv.RandSlv(DATA_WIDTH);  -- match DATA_WIDTH
+			rand_data := std_logic_vector (to_unsigned(J,32));  -- match DATA_WIDTH
 			Push(SB, rand_data);
 			Send(StreamTxRec, rand_data);
 		end loop;

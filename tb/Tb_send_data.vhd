@@ -73,6 +73,8 @@ begin
 	variable ExpData : std_logic_vector(DATA_WIDTH-1 downto 0);
 	variable RcvData : std_logic_vector(DATA_WIDTH-1 downto 0);
 	begin
+	wait until nReset = '1';
+	SetAxiStreamOptions(StreamRxRec, RECEIVE_READY_WAIT_FOR_GET, TRUE);
 	WaitForClock(StreamRxRec, 2);
 	
 	log("Receive and check 1000 incrementing values");
@@ -83,6 +85,9 @@ begin
 		if (RcvData(RcvData'high downto RcvData'high -2) = "00") then
 			Check(SB,RcvData);
 	        end if;
+		if (J = 30) then
+		   wait for 1000 us;
+		end if;
 		log("Data Received: " & to_hstring(RcvData), Level => DEBUG);
 	end loop;
 	

@@ -29,14 +29,14 @@ architecture Behavioral of packetization is
     signal in_ready_fifo : std_logic;  -- FIFO drives this, don't assign manually
 
     -- Internal output signals
-    signal m_valid_sig : std_logic;
-    signal m_data_sig  : std_logic_vector(DATA_WIDTH -1 downto 0);  
+    signal m_valid_sig : std_logic := '0';
+    signal m_data_sig  : std_logic_vector(DATA_WIDTH -1 downto 0) := (others => '0');  
 
     -- State machine definition
     type state_t is (send_head, send_body, send_tail);
     signal state : state_t := send_head;     
 
-    signal counter_data_send : integer range 0 to 5;
+    signal counter_data_send : integer range 0 to 5 := 0;
 
 begin
 
@@ -53,43 +53,66 @@ begin
                 m_data_sig         <= (others => '0');
                 counter_data_send  <= 0;
                 state              <= send_head;
-	        in_ready_fifo      <= '0';
+                in_ready_fifo      <= '0';
             else
                 -- Default assignments
                 m_valid_sig <= '0';
                 m_data_sig  <= (others => '0');
+                in_ready_fifo <= '0';
 
-                -- FSM for packet construction
                 case state is
                     when send_head =>
-                        if in_valid_fifo = '1' then
-                            state       <= send_body;
+                        -- Wait for FIFO data valid and master ready before sending header
+                        if in_valid_fifo = '1' and m_ready = '1' then
                             m_valid_sig <= '1';
-                            -- Header format: "01" & 30-bit value
                             m_data_sig  <= "01" & std_logic_vector(to_unsigned(999, 30));
+                            state       <= send_body;
                         end if;
 
                     when send_body =>
-			in_ready_fifo <= '1';
-                        if in_valid_fifo = '1' and in_ready_fifo = '1' then
-                            -- Data format: "00" & 30 LSBs of FIFO data
-                            m_data_sig  <= "00" & in_data_fifo(DATA_WIDTH - 3 downto 0);
-                            m_valid_sig <= '1';
+                        -- Body state with proper handshake and stall logic
 
-                            if counter_data_send = 5 then
-                                counter_data_send <= 0;
-                                state             <= send_tail;
-				in_ready_fifo <= '0';
+                        if m_valid_sig = '0' then
+                            -- Not currently sending data: try to load from FIFO if available
+                            if in_valid_fifo = '1' then
+                                m_data_sig  <= "00" & in_data_fifo(DATA_WIDTH - 3 downto 0);
+                                m_valid_sig <= '1';
+                                in_ready_fifo <= '1';  -- accept FIFO data
                             else
-                                counter_data_send <= counter_data_send + 1;
+                                -- No FIFO data to send
+                                m_valid_sig <= '0';
+                                in_ready_fifo <= '0';
+                            end if;
+
+                        else
+                            -- Currently sending data: wait for receiver ready
+                            if m_ready = '1' then
+                                -- Handshake done, consume data and move forward
+                                m_valid_sig <= '0';
+                                in_ready_fifo <= '0';
+                                if counter_data_send = 5 then
+                                    counter_data_send <= 0;
+                                    state <= send_tail;
+                                else
+                                    counter_data_send <= counter_data_send + 1;
+                                end if;
+                            else
+                                -- Receiver not ready, keep valid high and hold data, stall FIFO read
+                                m_valid_sig <= '1';
+                                in_ready_fifo <= '0';
                             end if;
                         end if;
 
                     when send_tail =>
-                        state       <= send_head;
-                        m_valid_sig <= '1';
-                        -- Tail format: "11" & 30-bit value
-                        m_data_sig  <= "11" & std_logic_vector(to_unsigned(999, 30));
+                        -- Wait for master ready to send tail packet
+                        if m_ready = '1' then
+                            m_valid_sig <= '1';
+                            m_data_sig  <= "11" & std_logic_vector(to_unsigned(999, 30));
+                            state       <= send_head;
+                        else
+                            m_valid_sig <= '0';
+                        end if;
+
                 end case;
             end if;
         end if;

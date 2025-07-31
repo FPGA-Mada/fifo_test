@@ -80,11 +80,10 @@ begin
           when send_body =>
             if m_valid_sig = '0' and in_valid_fifo = '1' then
               m_data_sig     <= "00" & in_data_fifo(DATA_WIDTH - 3 downto 0);
-              m_valid_sig    <= '1';
+              m_valid_sig    <= '1';       
+              in_ready_fifo   <= '1';  -- FIFO consumes data only on successful transmission
             elsif m_valid_sig = '1' and m_ready = '1' then
               m_valid_sig     <= '0';
-              in_ready_fifo   <= '1';  -- FIFO consumes data only on successful transmission
-
               if counter_data_send = 4 then
                 counter_data_send <= 0;
                 state             <= send_tail;

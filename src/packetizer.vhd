@@ -36,7 +36,7 @@ architecture Behavioral of packetization is
     type state_t is (send_head, send_body, send_tail);
     signal state : state_t := send_head;     
 
-    signal counter_data_send : integer range 0 to 5 := 0;
+    signal counter_data_send : integer range 0 to 4 := 0;  -- Changed range to 0-4
 
 begin
 
@@ -62,7 +62,6 @@ begin
 
                 case state is
                     when send_head =>
-                        -- Wait for FIFO data valid and master ready before sending header
                         if in_valid_fifo = '1' and m_ready = '1' then
                             m_valid_sig <= '1';
                             m_data_sig  <= "01" & std_logic_vector(to_unsigned(999, 30));
@@ -70,55 +69,41 @@ begin
                         end if;
 
                     when send_body =>
-                        -- Body state with proper handshake and stall logic
-
                         if m_valid_sig = '0' then
-                            -- Not currently sending data: try to load from FIFO if available
                             if in_valid_fifo = '1' then
                                 m_data_sig  <= "00" & in_data_fifo(DATA_WIDTH - 3 downto 0);
                                 m_valid_sig <= '1';
                                 in_ready_fifo <= '1';  -- accept FIFO data
-                            else
-                                -- No FIFO data to send
-                                m_valid_sig <= '0';
-                                in_ready_fifo <= '0';
                             end if;
-
                         else
-                            -- Currently sending data: wait for receiver ready
                             if m_ready = '1' then
-                                -- Handshake done, consume data and move forward
                                 m_valid_sig <= '0';
                                 in_ready_fifo <= '0';
-                                if counter_data_send = 5 then
+                                -- Check if this was the 5th body word (counter=4)
+                                if counter_data_send = 4 then  -- Changed condition to 4
                                     counter_data_send <= 0;
                                     state <= send_tail;
                                 else
                                     counter_data_send <= counter_data_send + 1;
                                 end if;
                             else
-                                -- Receiver not ready, keep valid high and hold data, stall FIFO read
                                 m_valid_sig <= '1';
                                 in_ready_fifo <= '0';
                             end if;
                         end if;
 
                     when send_tail =>
-                        -- Wait for master ready to send tail packet
                         if m_ready = '1' then
                             m_valid_sig <= '1';
                             m_data_sig  <= "11" & std_logic_vector(to_unsigned(999, 30));
                             state       <= send_head;
-                        else
-                            m_valid_sig <= '0';
                         end if;
-
                 end case;
             end if;
         end if;
     end process packetizer_proc;
 
-    -- FIFO Instantiation
+    -- FIFO Instantiation (unchanged)
     fifo_inst : entity work.olo_base_fifo_sync
     generic map(
         Width_g         => DATA_WIDTH,
@@ -132,20 +117,16 @@ begin
         ReadyRstState_g => '1'
     )
     port map (
-        -- Control Ports
         Clk           => clk,
         Rst           => rst,
-        -- Input Data
         In_Data       => s_data,
         In_Valid      => s_valid,
         In_Ready      => s_ready,
         In_Level      => open,
-        -- Output Data
         Out_Data      => in_data_fifo,
         Out_Valid     => in_valid_fifo,
         Out_Ready     => in_ready_fifo,
         Out_Level     => open,
-        -- Status
         Full          => open,
         AlmFull       => open,
         Empty         => open,

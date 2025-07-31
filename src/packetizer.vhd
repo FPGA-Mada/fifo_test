@@ -43,6 +43,7 @@ begin
     -- Output assignments
     m_valid <= m_valid_sig;
     m_data  <= m_data_sig;
+	
 
     -- Packetizer Process
     packetizer_proc: process (clk)
@@ -61,15 +62,23 @@ begin
 
                 case state is
                     when send_head =>
-                        if in_valid_fifo = '1' and m_ready = '1' then
-                            m_valid_sig <= '1';
-                            m_data_sig  <= "01" & std_logic_vector(to_unsigned(999, 30));
-                            state       <= send_body;
-                        end if;
+						if (m_valid_sig = '0') then
+							if (in_valid_fifo = '1') then
+								m_valid_sig <= '1';
+								m_data_sig <= "01" & std_logic_vector(to_unsigned(999,30));
+							end if;
+						else 
+							if (m_ready = '1') then 
+								m_valid_sig <= '0';
+								state       <= send_body;
+							else 	
+								m_valid_sig <= '1';
+							end if;
+						end if;
 
                     when send_body =>
                         if m_valid_sig = '0' then
-                            if (in_valid_fifo = '1' and m_ready = '1' )then
+                            if (in_valid_fifo = '1')then
                                 m_data_sig  <= "00" & in_data_fifo(DATA_WIDTH - 3 downto 0);
                                 m_valid_sig <= '1';
                                 in_ready_fifo <= '1';  -- accept FIFO data
@@ -77,7 +86,6 @@ begin
                         else
                             if m_ready = '1' then
                                 m_valid_sig <= '0';
-                                in_ready_fifo <= '0';
                                 -- Check if this was the 5th body word (counter=4)
                                 if counter_data_send = 4 then  -- Changed condition to 4
                                     counter_data_send <= 0;
@@ -87,7 +95,6 @@ begin
                                 end if;
                             else
                                 m_valid_sig <= '1';
-                                in_ready_fifo <= '0';
                             end if;
                         end if;
 
@@ -100,9 +107,7 @@ begin
 						else  
 							if (m_ready = '1') then 
 								m_valid_sig <= '0';
-								state <= send_head;
-							else 
-								m_valid_sig <= '1';
+
 							end if;
 						end if;
    

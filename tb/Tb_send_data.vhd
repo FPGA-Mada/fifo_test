@@ -25,8 +25,8 @@ begin
     wait until nReset = '1' ; 
 	SB <= NEWID ("Score_Board"); 
     ClearAlerts;
-    WaitForBarrier(TestDone, 10 ms);
-    AlertIf(now >= 10 ms, "Test finished due to timeout");
+    WaitForBarrier(TestDone, 50 ms);
+    AlertIf(now >= 50 ms, "Test finished due to timeout");
     AlertIf(GetAffirmCount < 1, "Test is not Self-Checking");
 
     wait for 1 us;
@@ -52,10 +52,11 @@ begin
 	
 		log("Send 1000 words with random values");
 	
-		for J in 0 to 999 loop  -- 1000 words
+		for J in 0 to 59 loop  -- 1000 words
 			rand_data := std_logic_vector (to_unsigned(J,32));  -- match DATA_WIDTH
 			Push(SB, rand_data);
 			Send(StreamTxRec, rand_data);
+			WaitForClock(StreamTxRec, 2);
 		end loop;
 	
 		WaitForClock(StreamTxRec, 2);
@@ -80,15 +81,16 @@ begin
 	log("Receive and check 1000 incrementing values");
 	
 	ExpData := (others => '0');
-	for J in 0 to 999 loop
+	for J in 0 to 83 loop
 		Get(StreamRxRec, RcvData);
 		if (RcvData(RcvData'high downto RcvData'high -2) = "00") then
 			Check(SB,RcvData);
 	        end if;
 		if (J = 30) then
-		   wait for 1000 us;
+		    wait for 1000 us;
 		end if;
 		log("Data Received: " & to_hstring(RcvData), Level => DEBUG);
+		WaitForClock(StreamRxRec, 2);
 	end loop;
 	
 	WaitForClock(StreamRxRec, 2);

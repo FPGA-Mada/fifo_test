@@ -5,7 +5,7 @@ use IEEE.NUMERIC_STD.ALL;
 entity packetization is
   generic (
        DATA_WIDTH : positive := 32;
-       FIFO_DEPTH : positive := 32
+       FIFO_DEPTH : positive := 64
   );
   Port (
         clk : in std_logic;
@@ -57,7 +57,6 @@ begin
             else
                 -- Default assignments
                 m_valid_sig <= '0';
-                m_data_sig  <= (others => '0');
                 in_ready_fifo <= '0';
 
                 case state is
@@ -70,7 +69,7 @@ begin
 
                     when send_body =>
                         if m_valid_sig = '0' then
-                            if in_valid_fifo = '1' then
+                            if (in_valid_fifo = '1' and m_ready = '1' )then
                                 m_data_sig  <= "00" & in_data_fifo(DATA_WIDTH - 3 downto 0);
                                 m_valid_sig <= '1';
                                 in_ready_fifo <= '1';  -- accept FIFO data

@@ -92,11 +92,20 @@ begin
                         end if;
 
                     when send_tail =>
-                        if m_ready = '1' then
-                            m_valid_sig <= '1';
-                            m_data_sig  <= "11" & std_logic_vector(to_unsigned(999, 30));
-                            state       <= send_head;
-                        end if;
+						if m_valid_sig = '0' then 
+							if (m_ready = '1') then 
+						       m_valid_sig <= '1';
+                               m_data_sig  <= "11" & std_logic_vector(to_unsigned(999, 30));
+							end if;
+						else  
+							if (m_ready = '1') then 
+								m_valid_sig <= '0';
+								state <= send_head;
+							else 
+								m_valid_sig <= '1';
+							end if;
+						end if;
+   
                 end case;
             end if;
         end if;

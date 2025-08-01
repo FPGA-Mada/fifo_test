@@ -78,19 +78,32 @@ begin
           -- Payload Body Transmission
           ----------------------------------------------------------------
           when send_body =>
-            if m_valid_sig = '0' and in_valid_fifo = '1' then
-              m_data_sig     <= "00" & in_data_fifo(DATA_WIDTH - 3 downto 0);
-              m_valid_sig    <= '1';       
-              in_ready_fifo   <= '1';  -- FIFO consumes data only on successful transmission
-            elsif m_valid_sig = '1' and m_ready = '1' then
-              m_valid_sig     <= '0';
-              if counter_data_send = 4 then
-                counter_data_send <= 0;
-                state             <= send_tail;
-              else
-                counter_data_send <= counter_data_send + 1;
-              end if;
-            end if;
+		   if m_valid_sig = '0' then
+				if (in_valid_fifo = '1' and m_ready = '1') then 
+					m_data_sig <= "00" & in_data_fifo(DATA_WIDTH -3 downto 0);
+					m_valid_sig <= '1';
+					in_ready_fifo <= '1';
+					if (counter_data_send = 4) then 
+						state <= send_tail;
+					else 
+						counter_data_send <= counter_data_send + 1;
+					end if;
+				end if;
+		   elsif (m_valid_sig = '1' and m_ready = '1') then 
+				if (in_valid_sig = '1') then 
+				    m_data_sig <= "00" & in_data_fifo(DATA_WIDTH -3 downto 0);
+					m_valid_sig <= '1';
+					in_ready_fifo <= '1';
+					if (counter_data_send = 4) then 
+						state <= send_tail;
+						m_valid_sig <= '0';
+					else 
+						counter_data_send <= counter_data_send + 1;
+					end if;
+				else 
+					m_valid_sig <= '0';
+				end if;
+		   end if;
 
           ----------------------------------------------------------------
           -- Tail Transmission

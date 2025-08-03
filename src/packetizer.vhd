@@ -38,6 +38,7 @@ architecture Behavioral of packetization is
 
   signal counter_data_send : integer range 0 to 4 := 0;
   signal prefetch_valid : std_logic;
+  signal prefetch_data : std_logic_vector (DATA_WIDTH - 1 downto 0) := (others => '0');
 
 begin
 

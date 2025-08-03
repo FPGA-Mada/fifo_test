@@ -86,7 +86,7 @@ begin
 			    	in_ready_fifo <= '1';
 				if (counter_data_send = 4) then 
 					state <= send_tail;
-					couter_data_send <= 0;
+					counter_data_send <= 0;
 				else 
 					counter_data_send <= counter_data_send + 1;
 				end if;
@@ -96,7 +96,7 @@ begin
           ----------------------------------------------------------------
           when send_tail =>
 				if (m_ready = '1') then 
-					m_data_sig <= "01" & std_logic_vector(to_unsigned(999, 30));
+					m_data_sig  <= "01" & std_logic_vector(to_unsigned(999, 30));
 					m_valid_sig <= '1';
 					state       <= send_head;
 				end if;

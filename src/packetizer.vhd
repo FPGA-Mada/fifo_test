@@ -1,4 +1,3 @@
-library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
@@ -80,19 +79,16 @@ begin
           -- Payload Body Transmission
           ----------------------------------------------------------------
           when send_body =>
-			when send_body =>
-				  if (in_valid_fifo = '1') then
-    					if (m_ready = '1') then 
-      						m_data_sig <= "01" & in_data_fifo;
-     						m_valid_sig <= '1';
-      						in_ready_fifo <= '1';
-      					if (counter_data_send = 4) then 
-        					state <= send_tail;
-        					counter_data_send <= 0;
-      					else 
-        					counter_data_send <= counter_data_send + 1;
-      					end if;
-    				end if;
+			if (in_valid_fifo = '1' and m_ready = '1') then 
+				m_data_sig <=  "00" & in_data_fifo;
+				m_valid_sig <= '1';
+			    	in_ready_fifo <= '1';
+				if (counter_data_send = 4) then 
+					state <= send_tail;
+					counter_data_send <= 0;
+				else 
+					counter_data_send <= counter_data_send + 1;
+				end if;
 			end if;
           ----------------------------------------------------------------
           -- Tail Transmission

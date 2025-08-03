@@ -83,7 +83,7 @@ begin
 			when send_body =>
 				  if (in_valid_fifo = '1') then
     					if (m_ready = '1') then 
-      						m_data_sig <= in_data_fifo;
+      						m_data_sig <= "01" & in_data_fifo;
      						m_valid_sig <= '1';
       						in_ready_fifo <= '1';
       					if (counter_data_send = 4) then 

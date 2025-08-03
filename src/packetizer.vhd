@@ -80,16 +80,19 @@ begin
           -- Payload Body Transmission
           ----------------------------------------------------------------
           when send_body =>
-			if (in_valid_fifo = '1' and m_ready = '1') then 
-				m_data_sig <= in_data_fifo;
-				m_valid_sig <= '1';
-			    	in_ready_fifo <= '1';
-				if (counter_data_send = 4) then 
-					state <= send_tail;
-					counter_data_send <= 0;
-				else 
-					counter_data_send <= counter_data_send + 1;
-				end if;
+			when send_body =>
+				  if (in_valid_fifo = '1') then
+    					if (m_ready = '1') then 
+      						m_data_sig <= in_data_fifo;
+     						m_valid_sig <= '1';
+      						in_ready_fifo <= '1';
+      					if (counter_data_send = 4) then 
+        					state <= send_tail;
+        					counter_data_send <= 0;
+      					else 
+        					counter_data_send <= counter_data_send + 1;
+      					end if;
+    				end if;
 			end if;
           ----------------------------------------------------------------
           -- Tail Transmission

@@ -33,10 +33,11 @@ architecture Behavioral of packetization is
   signal m_data_sig  : std_logic_vector(DATA_WIDTH - 1 downto 0) := (others => '0');
 
   -- State machine definition
-  type state_t is (send_head, send_body, send_tail);
+  type state_t is (prefetch, send_head, send_body, send_tail);
   signal state : state_t := send_head;
 
   signal counter_data_send : integer range 0 to 4 := 0;
+  signal prefetch_valid : std_logic;
 
 begin
 

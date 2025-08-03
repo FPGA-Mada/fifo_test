@@ -70,7 +70,7 @@ begin
           -- Header Transmission
           ----------------------------------------------------------------
           when send_head =>
-			if (m_ready = '1') then
+			if (m_ready = '1' and in_valid_fifo = '1' ) then
 				m_data_sig <= "01" & std_logic_vector(to_unsigned(999, 30));
 				m_valid_sig <= '1';
 				state       <= send_body;

@@ -61,7 +61,7 @@ architecture TestHarness of TestHarness_fifo is
   constant tpd         : time := 2 ns ; 
   
   constant PACKET_LENGTH  : natural  := 5;   -- Number of body words per packet
-  constant SPECIAL_PAYLOAD: natural  := 999  -- Payload for header/tail
+  constant SPECIAL_PAYLOAD: natural  := 999;  -- Payload for header/tail
 
   signal Clk       : std_logic := '1' ;
   signal nReset    : std_logic ;

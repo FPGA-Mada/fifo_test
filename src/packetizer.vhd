@@ -7,7 +7,7 @@ entity packetization is
     DATA_WIDTH     : positive := 32;  -- Data width, must be >= 2
     FIFO_DEPTH     : positive := 64;  -- FIFO depth
     PACKET_LENGTH  : natural  := 5;   -- Number of body words per packet
-    SPECIAL_PAYLOAD: natural  := 999  -- Payload for header/tail
+    SPECIAL_PAYLOAD: natural  := 999  -- Payload for header
   );
   Port (
     clk     : in  std_logic;
@@ -28,7 +28,6 @@ architecture Behavioral of packetization is
   -- Packet prefix encoding constants
   constant HEAD_P : std_logic_vector (1 downto 0) := "01";
   constant BODY_P : std_logic_vector (1 downto 0) := "00";
-  constant TAIL_P : std_logic_vector (1 downto 0) := "11";
 
   constant PAYLOAD_WIDTH : natural := DATA_WIDTH - 2;
 
@@ -36,7 +35,7 @@ architecture Behavioral of packetization is
     std_logic_vector(to_unsigned(SPECIAL_PAYLOAD, PAYLOAD_WIDTH));
 
   -- State type
-  type state_t is (SEND_HEAD, SEND_BODY, SEND_TAIL);
+  type state_t is (SEND_HEAD, SEND_BODY);
 
   -- Internal record to hold state and signals
   type TwoProcess_r is record
@@ -108,19 +107,12 @@ begin
 
           if (r.counter = PACKET_LENGTH - 1) then
             v.counter := 0;
-            v.state := SEND_TAIL;
+            v.state := SEND_HEAD;
           else
             v.counter := r.counter + 1;
           end if;
         end if;
-
-      when SEND_TAIL =>
-        if (m_ready = '1') then
-          v.m_valid := '1';
-          v.m_data  := TAIL_P & SPECIAL_DATA;
-          v.state   := SEND_HEAD;
-        end if;
-
+		
       when others =>
         null; -- defensive programming, no other states expected
     end case;

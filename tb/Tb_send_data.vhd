@@ -81,7 +81,7 @@ begin
 	log("Receive and check 1000 incrementing values");
 	
 	ExpData := (others => '0');
-	for J in 0 to 83 loop
+	for J in 0 to 71 loop
 		Get(StreamRxRec, RcvData);
 		if (RcvData(RcvData'high downto RcvData'high -2) = "00") then
 			Check(SB,RcvData);

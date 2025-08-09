@@ -59,6 +59,9 @@ architecture TestHarness of TestHarness_fifo is
 
   constant tperiod_Clk : time := 10 ns ; 
   constant tpd         : time := 2 ns ; 
+  
+  constant PACKET_LENGTH  : natural  := 5;   -- Number of body words per packet
+  constant SPECIAL_PAYLOAD: natural  := 999  -- Payload for header/tail
 
   signal Clk       : std_logic := '1' ;
   signal nReset    : std_logic ;
@@ -112,11 +115,12 @@ architecture TestHarness of TestHarness_fifo is
   
 begin
 
-
     DUT : entity work.packetization
     generic map (
         DATA_WIDTH         => AXI_DATA_WIDTH,
-        FIFO_DEPTH         => FIFO_DEPTH
+        FIFO_DEPTH         => FIFO_DEPTH,
+		PACKET_LENGTH      => PACKET_LENGTH,
+		SPECIAL_PAYLOAD	   => SPECIAL_PAYLOAD
     )
     port map (
         -- Control

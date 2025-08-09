@@ -40,7 +40,6 @@ architecture Behavioral of packetization is
   -- Internal record to hold state and signals
   type TwoProcess_r is record
     counter : integer range 0 to PACKET_LENGTH;
-    s_ready : std_logic;
     m_valid : std_logic;
     m_data  : std_logic_vector (DATA_WIDTH - 1 downto 0);
     state   : state_t;
@@ -48,7 +47,6 @@ architecture Behavioral of packetization is
 
   constant RESET_R : TwoProcess_r := (
     counter => 0,
-    s_ready => '0',
     m_valid => '0',
     m_data  => (others => '0'),
     state   => SEND_HEAD
@@ -59,6 +57,7 @@ architecture Behavioral of packetization is
   -- FIFO interface signals
   signal data_valid : std_logic;
   signal data_in    : std_logic_vector(DATA_WIDTH - 1 downto 0);
+  signal fifo_read_ready : std_logic;
 
 begin
 
@@ -83,7 +82,7 @@ begin
     variable v : TwoProcess_r;
   begin
     v := r;
-    v.s_ready := '0';
+	fifo_read_ready <= '0';
 
     -- Clear m_valid when downstream accepted data
     if (m_ready = '1' and r.m_valid = '1') then
@@ -103,8 +102,7 @@ begin
         if (data_valid = '1' and m_ready = '1') then
           v.m_valid := '1';
           v.m_data  := BODY_P & data_in(PAYLOAD_WIDTH - 1 downto 0);
-          v.s_ready := '1'; -- acknowledge FIFO read
-
+		  fifo_read_ready <= '1';
           if (r.counter = PACKET_LENGTH - 1) then
             v.counter := 0;
             v.state := SEND_HEAD;
@@ -146,7 +144,7 @@ begin
       In_Level    => open,
       Out_Data    => data_in,
       Out_Valid   => data_valid,
-      Out_Ready   => r.s_ready,
+      Out_Ready   => fifo_read_ready,
       Out_Level   => open,
       Full        => open,
       AlmFull     => open,

@@ -66,7 +66,6 @@ begin
   -- Output assignments
   m_valid <= r.m_valid;
   m_data  <= r.m_data;
-  s_ready <= r.s_ready;
 
   -- Sequential process
   p_seq : process(clk)

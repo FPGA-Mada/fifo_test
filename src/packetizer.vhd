@@ -92,7 +92,7 @@ begin
     case r.state is
       when SEND_HEAD =>
         v.counter := 0;  -- reset counter for packet body
-        if (m_ready = '1') then
+        if (m_ready = '1' and data_valid = '1') then
           v.m_valid := '1';
           v.m_data  := HEAD_P & SPECIAL_DATA;
           v.state   := SEND_BODY;
